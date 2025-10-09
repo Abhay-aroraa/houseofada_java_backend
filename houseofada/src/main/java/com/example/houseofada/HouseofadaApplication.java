@@ -1,0 +1,14 @@
+package com.example.houseofada;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HouseofadaApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HouseofadaApplication.class, args);
+		System.out.print("abhayy");
+	}
+
+}
