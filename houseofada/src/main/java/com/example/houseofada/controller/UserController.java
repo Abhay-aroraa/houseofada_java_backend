@@ -35,11 +35,5 @@ public class UserController {
         return ResponseEntity.ok(token);
     }
 
-    // Admin login
-    @PostMapping("/admin/login")
-    public ResponseEntity<String> adminLogin(@RequestBody AuthRequest request) {
-        log.info("Received ADMIN login request for email: {}", request.getEmail());
-        String token = userService.loginAdmin(request);
-        return ResponseEntity.ok(token);
-    }
+
 }

@@ -22,10 +22,9 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @NonNull
     private String password;
     // store hashed password
 
     @Column(nullable = false)
-    private String role;  // e.g., "ADMIN", "USER"
+    private String role;
 }
