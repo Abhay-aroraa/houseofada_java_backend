@@ -39,8 +39,9 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/auth/**").permitAll() // Allow login & registration
-//                        .requestMatchers("/admin/**").hasRole("ADMIN") // Only ADMIN can access /admin endpoints
+//                        .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/api/orders/**").authenticated()
+//                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
