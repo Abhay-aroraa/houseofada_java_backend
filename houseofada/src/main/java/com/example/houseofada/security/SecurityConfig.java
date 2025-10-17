@@ -40,8 +40,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/products/upload").hasRole("ADMIN")
+
                                 .requestMatchers("/api/orders/**").authenticated()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
+//
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session

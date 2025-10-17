@@ -21,11 +21,10 @@ public class UserService {
     public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
-        this.passwordEncoder = new BCryptPasswordEncoder(); // for hashing passwords
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    // ------------------ REGISTER USER ------------------
-    public String registerUser(User user) {
+  public String registerUser(User user) {
         log.info("Attempting to register user with email: {}", user.getEmail());
 
         if (userRepository.existsByEmail(user.getEmail())) {
