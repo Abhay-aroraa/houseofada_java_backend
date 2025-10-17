@@ -1,57 +1,103 @@
 package com.example.houseofada.security;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
+@Slf4j
 public class JwtUtil {
+
     private static final String SECRET = "houseofadaSecretKey1234567890123456";
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 10; // 10 hours
 
-
+    // ✅ Generate JWT token
     public String generateToken(String email, String role) {
-        // Token expiration time in milliseconds (10 hours)
-        long EXPIRATION_MS = 1000 * 60 * 60 * 10;
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+
         return Jwts.builder()
-                .setSubject(email)               // Set the "subject" of the token to the user's email
-                .claim("role", role)             // Add custom claim "role" to store user/admin role
-                .setIssuedAt(new Date())         // Token issue time (current time)
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS)) // Expiry time
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY) // Sign token with secret key
-                .compact();                      // Build the token and return as string
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // ✅ Extract username/email from token
+    public String extractUsername(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (JwtException e) {
+            log.error("Error extracting username from JWT: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public String extractEmail(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY)       // Use the same secret key to parse
-                .parseClaimsJws(token)           // Parse the JWT
-                .getBody()                       // Get payload (claims)
-                .getSubject();                   // Return the subject (email)
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();  // this is the email
     }
+
+    // ✅ Extract role from token
     public String extractRole(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody()
-                .get("role", String.class);       // Get the "role" claim
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("role", String.class);
+        } catch (JwtException e) {
+            log.error("Error extracting role from JWT: {}", e.getMessage());
+            throw e;
+        }
     }
 
-    public boolean validateToken(String token, String email) {
-        return extractEmail(token).equals(email) && !isTokenExpired(token);
+    // ✅ Validate token with Spring Security's UserDetails
+    public boolean validateToken(String token, UserDetails userDetails) {
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (JwtException e) {
+            log.warn("Invalid token: {}", e.getMessage());
+            return false;
+        }
     }
 
+    // ✅ Check if token expired
     private boolean isTokenExpired(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .before(new Date());
+        try {
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            return expiration.before(new Date());
+        } catch (JwtException e) {
+            log.error("Error checking token expiration: {}", e.getMessage());
+            return true;
+        }
     }
+
 
 }

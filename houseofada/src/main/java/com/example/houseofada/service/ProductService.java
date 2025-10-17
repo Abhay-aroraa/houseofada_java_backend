@@ -15,7 +15,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    // GET all products
+
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
@@ -29,7 +29,6 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    // UPDATE an existing product
     public Product updateProduct(Long id, Product updatedProduct) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
