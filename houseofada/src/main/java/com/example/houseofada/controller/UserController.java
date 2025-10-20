@@ -1,6 +1,7 @@
 package com.example.houseofada.controller;
 
 import com.example.houseofada.model.AuthRequest;
+import com.example.houseofada.model.Product;
 import com.example.houseofada.model.User;
 import com.example.houseofada.repository.UserRepository;
 import com.example.houseofada.security.JwtUtil;
@@ -9,10 +10,12 @@ import com.example.houseofada.service.OtpService;
 import com.example.houseofada.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -41,13 +44,29 @@ public class UserController {
 
     // ✅ LOGIN
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest request) {
         log.info("Received login request for email: {}", request.getEmail());
-        String token = userService.loginUser(request);
-        return ResponseEntity.ok(token);
+
+        Map<String, Object> response = userService.loginUser(request);
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ SEND OTP
+
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> getAllUsers() {
+        log.info("Fetching all users");
+        return userService.getAllUsersWithCount().getUsers();
+    }
+
+    @DeleteMapping("/id/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(@PathVariable Long userId) {
+        log.info("Request to delete user with ID: {}", userId);
+        userService.deleteUserById(userId);
+        log.info("user deleted successfully: {}", userId);
+    }
+
     @PostMapping("/send-otp")
     public ResponseEntity<Map<String, String>> sendOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -69,7 +88,7 @@ public class UserController {
         String otp = request.get("otp");
         String name = request.get("name");
         String password = request.get("password");
-        String role = request.getOrDefault("role", "USER");
+        String role = request.get("role");
 
         log.info("Verifying OTP for email: {}", email);
 
@@ -94,7 +113,9 @@ public class UserController {
         user.setName(name);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        if(role == null || role.isEmpty()) role = "USER";
         user.setRole(role.equalsIgnoreCase("ADMIN") ? "ADMIN" : "USER");
+
 
         userRepository.save(user);
         log.info("✅ User {} registered successfully", email);

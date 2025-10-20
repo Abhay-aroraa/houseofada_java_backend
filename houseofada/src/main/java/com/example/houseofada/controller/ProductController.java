@@ -28,7 +28,7 @@ public class ProductController {
     }
 
     // GET all products
-    @GetMapping
+    @GetMapping("/list")
     public List<Product> getAllProducts() {
         log.info("Fetching all products");
         return productService.getAllProducts();
