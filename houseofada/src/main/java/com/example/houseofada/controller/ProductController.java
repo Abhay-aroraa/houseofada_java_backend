@@ -4,6 +4,7 @@ import com.example.houseofada.model.Product;
 import com.example.houseofada.service.ImageUploadService;
 import com.example.houseofada.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,10 +36,17 @@ public class ProductController {
     }
 
     @GetMapping("/id/{productId}")
-    public Optional<Product> getProductById (@PathVariable Long productId){
-        log.info("fetching product by id");
-        return productService.getProductById(productId);
+    public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
+        log.info("Fetching product by id: {}", productId);
+        try {
+            Product product = productService.getProductById(productId);
+            return ResponseEntity.ok(product);
+        } catch (RuntimeException e) {
+            log.error("Product not found: {}", e.getMessage());
+            return ResponseEntity.status(404).body(null);
+        }
     }
+
 
     // POST: Add a new product
     @PreAuthorize("hasRole('ADMIN')")

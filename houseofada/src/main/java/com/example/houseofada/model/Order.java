@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,15 +24,25 @@ public class Order {
 
     private Double totalAmount;
 
-    private String status; // PENDING, PAID, COMPLETED
+    private String status;
+    // PENDING, PAID, COMPLETED
 
     private String paymentId; // e.g. Razorpay/Stripe ID
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
+
+    @ManyToOne(cascade = CascadeType.ALL) // or OneToOne if one order has one address
+    @JoinColumn(name = "address_id")
+    private Address shippingAddress;
+
+    private String orderCode;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -5,11 +5,8 @@ import java.util.List;
 
 @Data
 public class CreateOrderRequest {
-    private List<OrderItemRequest> items;
+    private Long userId;                 // the user placing the order
+    private AddressRequest shippingAddress; // shipping address
+    private List<OrderItemRequest> items;   // products in the order
 }
 
-@Data
-class OrderItemRequest {
-    private Long productId;
-    private Integer quantity;
-}
