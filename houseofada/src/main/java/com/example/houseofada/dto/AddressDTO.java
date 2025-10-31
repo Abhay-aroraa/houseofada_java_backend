@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AddressDTO {
+    private Long id;
     private String customerName;
     private String phone;
     private String addressLine;

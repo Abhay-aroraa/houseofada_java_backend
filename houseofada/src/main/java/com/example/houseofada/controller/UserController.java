@@ -9,6 +9,7 @@ import com.example.houseofada.service.EmailService;
 import com.example.houseofada.service.OtpService;
 import com.example.houseofada.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,7 +45,7 @@ public class UserController {
 
     // ✅ LOGIN
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest request) throws InvalidCredentialsException {
         log.info("Received login request for email: {}", request.getEmail());
 
         Map<String, Object> response = userService.loginUser(request);

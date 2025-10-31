@@ -2,6 +2,8 @@ package com.example.houseofada.service;
 
 import com.example.houseofada.dto.CartDto;
 import com.example.houseofada.dto.CartItemDto;
+import com.example.houseofada.exception.GlobalExceptionHandler;
+import com.example.houseofada.exception.UserNotFoundException;
 import com.example.houseofada.model.Cart;
 import com.example.houseofada.model.CartItem;
 import com.example.houseofada.model.Product;
@@ -130,18 +132,20 @@ public class CartService {
         log.info("Removing product {} (size: {}) from cart for user {}", productId, size, userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new UserNotFoundException("Cart not found"));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new UserNotFoundException("Product not found"));
 
         CartItem item = cartItemRepository.findByCartAndProductAndSize(cart, product, size)
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+                .orElseThrow(() -> new UserNotFoundException("Cart item not found"));
 
         cartItemRepository.delete(item);
+
+        cart.getCartItems().remove(item);
 
         recalcCart(cart);
         Cart updatedCart = cartRepository.save(cart);
@@ -158,10 +162,10 @@ public class CartService {
         log.info("Clearing entire cart for user {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new UserNotFoundException("Cart not found"));
 
         cartItemRepository.deleteAll(cart.getCartItems());
         cart.getCartItems().clear();

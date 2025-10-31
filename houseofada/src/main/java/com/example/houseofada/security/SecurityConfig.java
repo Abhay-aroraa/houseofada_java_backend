@@ -51,6 +51,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/products/upload").hasRole("ADMIN")
                         .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers("/api/cart/**").authenticated()
+                        .requestMatchers("/api/address/**").authenticated()
+                        .requestMatchers("/api/wishlist/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session

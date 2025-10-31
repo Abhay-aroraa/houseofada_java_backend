@@ -17,7 +17,8 @@ public class JwtUtil {
 
     private static final String SECRET = "houseofadaSecretKey1234567890123456";
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
-    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 10; // 10 hours
+    private static final long EXPIRATION_MS = 1000L * 60 * 60 * 24 * 30; // 30 days
+
 
     // ✅ Generate JWT token
     public String generateToken(String email, String role) {

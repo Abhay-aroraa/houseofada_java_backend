@@ -1,12 +1,14 @@
 package com.example.houseofada.service;
 
 import com.example.houseofada.dto.UserResponse;
+import com.example.houseofada.exception.UserNotFoundException;
 import com.example.houseofada.model.AuthRequest;
 import com.example.houseofada.model.Product;
 import com.example.houseofada.model.User;
 import com.example.houseofada.repository.UserRepository;
 import com.example.houseofada.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,61 +46,61 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-  public String registerUser(User user) {
+    public Map<String, Object> registerUser(User user) throws InvalidCredentialsException {
         log.info("Attempting to register user with email: {}", user.getEmail());
 
         if (userRepository.existsByEmail(user.getEmail())) {
             log.error("Registration failed: Email {} already exists", user.getEmail());
-            throw new RuntimeException("Email already exists");
+            throw new InvalidCredentialsException("Email already exists");
         }
 
         // Hash the password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-
+        // Set default role if not provided
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("USER");
         }
 
-        userRepository.save(user);
+        // Save the user
+        User savedUser = userRepository.save(user);
 
-        log.info("User {} registered successfully with role {}", user.getEmail(), user.getRole());
-        return "User registered successfully";
+        // Generate JWT token
+        String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole());
+
+        // Prepare response
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("email", savedUser.getEmail());
+        response.put("role", savedUser.getRole());
+        response.put("userId", savedUser.getId());
+        response.put("message", "User registered successfully");
+
+        log.info("User {} registered successfully with role {}", savedUser.getEmail(), savedUser.getRole());
+        return response;
     }
 
 
 
-    // ------------------ LOGIN USER ------------------
-    public Map<String, Object> loginUser(AuthRequest request) {
-        log.info("Attempting to log in user: {}", request.getEmail());
+    public Map<String, Object> loginUser(AuthRequest request) throws InvalidCredentialsException {
 
-        // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    log.error("Login failed: User {} not found", request.getEmail());
-                    return new RuntimeException("User not found");
-                });
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        // Validate password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.error("Login failed: Incorrect password for {}", request.getEmail());
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException(" Incorrect password");
         }
 
-        log.info("User {} authenticated successfully with role {}", user.getEmail(), user.getRole());
-
-        // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
-        log.info("JWT token generated for user {}", user.getEmail());
 
-        // Return data as HashMap
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("email", user.getEmail());
         response.put("role", user.getRole());
+        response.put("userId", user.getId());
         response.put("message", "Login successful");
-
         return response;
     }
+
 
 }

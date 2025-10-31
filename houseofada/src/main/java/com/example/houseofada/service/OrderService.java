@@ -1,6 +1,7 @@
 package com.example.houseofada.service;
 
 import com.example.houseofada.dto.*;
+import com.example.houseofada.exception.UserNotFoundException;
 import com.example.houseofada.model.*;
 import com.example.houseofada.repository.OrderItemRepository;
 import com.example.houseofada.repository.OrderRepository;
@@ -34,7 +35,7 @@ public class OrderService {
     public OrderResponseDTO createOrder(CreateOrderRequest request) {
         // Fetch user
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         // Create address entity
         Address address = Address.builder()
@@ -58,7 +59,7 @@ public class OrderService {
 
         for (OrderItemRequest itemRequest : request.getItems()) {
             Product product = productRepository.findById(itemRequest.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new UserNotFoundException("Product not found"));
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -92,6 +93,7 @@ public class OrderService {
                 )).toList();
 
         AddressDTO addressDTO = new AddressDTO(
+                savedOrder.getShippingAddress().getId(),
                 savedOrder.getShippingAddress().getCustomerName(),
                 savedOrder.getShippingAddress().getPhone(),
                 savedOrder.getShippingAddress().getAddressLine(),

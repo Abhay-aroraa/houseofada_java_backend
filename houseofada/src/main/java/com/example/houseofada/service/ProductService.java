@@ -51,7 +51,9 @@ public class ProductService {
         return product;
     }
 
-
+    public List<Product> searchProducts(String keyword) {
+        return productRepository.searchProducts(keyword);
+    }
     // ADD a new product
     public Product addProduct(Product product) {
         return productRepository.save(product);
@@ -75,6 +77,7 @@ public class ProductService {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found with id: " + id);
         }
+
         productRepository.deleteById(id);
     }
 }

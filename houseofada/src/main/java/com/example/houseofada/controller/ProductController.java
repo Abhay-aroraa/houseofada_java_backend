@@ -1,6 +1,7 @@
 package com.example.houseofada.controller;
 
 import com.example.houseofada.model.Product;
+import com.example.houseofada.repository.ProductRepository;
 import com.example.houseofada.service.ImageUploadService;
 import com.example.houseofada.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +23,12 @@ public class ProductController {
 
     private final ProductService productService;
     private final ImageUploadService imageUploadService;
+    private  final ProductRepository productRepository;
 
-    public ProductController(ProductService productService, ImageUploadService imageUploadService) {
+    public ProductController(ProductService productService, ImageUploadService imageUploadService, ProductRepository productRepository) {
         this.productService = productService;
         this.imageUploadService = imageUploadService;
+        this.productRepository = productRepository;
     }
 
     // GET all products
@@ -76,6 +79,26 @@ public class ProductController {
             throw new RuntimeException("Failed to upload product image");
         }
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchProducts(@RequestParam String keyword) {
+        log.info("🔍 Received search request for keyword: {}", keyword);
+
+        try {
+            List<Product> products = productRepository.searchProducts(keyword);
+            log.info("✅ Found {} products matching keyword '{}'", products.size(), keyword);
+
+            if (products.isEmpty()) {
+                return ResponseEntity.ok("No products found for keyword: " + keyword);
+            }
+
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            log.error("❌ Error occurred while searching products with keyword '{}'", keyword, e);
+            return ResponseEntity.internalServerError().body("An error occurred while searching products.");
+        }
+    }
+
 
     // DELETE: Delete product by ID
     @DeleteMapping("/id/{productId}")

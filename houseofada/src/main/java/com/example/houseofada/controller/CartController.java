@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/cart")
@@ -72,9 +74,8 @@ public class CartController {
 
 
     @DeleteMapping("/clear/{userId}")
-    public ResponseEntity<String> clearCart(@PathVariable Long userId) {
-        log.info("Clearing entire cart for user {}", userId);
+    public ResponseEntity<?> clearCart(@PathVariable Long userId) {
         cartService.clearCart(userId);
-        return ResponseEntity.ok("Cart cleared successfully for user " + userId);
+        return ResponseEntity.ok(Map.of("message", "Cart cleared successfully"));
     }
 }
